@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: pump-dao-agent
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: SOLANA_RPC_URL
+        value: https://rpc.solanatracker.io/public
+      - key: PROPOSAL_THRESHOLD_USD
+        value: 100
+      - key: VOTE_THRESHOLD_USD
+        value: 10
+      # PLACEHOLDER: Replace with your real token mint after launch
+      - key: AGENT_TOKEN_MINT_ADDRESS
+        value: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 
+      - key: PRIVATE_KEY
+        sync: false

@@ -1,0 +1,20 @@
+{
+  "name": "pump-dao-agent",
+  "version": "1.0.0",
+  "description": "$PDA - Pump DAO Agent: Governance for Pump.fun Tokenized Communities",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@pump-fun/agent-payments-sdk": "^3.0.1",
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "axios": "^1.6.0",
+    "bs58": "^6.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.18.2"
+  }
+}
