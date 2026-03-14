@@ -10,13 +10,19 @@ const axios = require('axios');
 const CONFIG = {
   PROPOSAL_THRESHOLD_USD: parseFloat(process.env.PROPOSAL_THRESHOLD_USD) || 100,
   VOTE_THRESHOLD_USD: parseFloat(process.env.VOTE_THRESHOLD_USD) || 10,
-  // Use Ankr as default fallback (more reliable on free cloud tiers)
-  SOLANA_RPC: process.env.SOLANA_RPC_URL || 'https://rpc.ankr.com/solana',
+  // Use WebSocket RPC for persistent connection (critical for Render/Cloud)
+  SOLANA_RPC: process.env.SOLANA_RPC_URL || 'wss://rpc.ankr.com/solana',
+  SOLANA_RPC_HTTP: process.env.SOLANA_RPC_HTTP || 'https://rpc.ankr.com/solana',
   AGENT_TOKEN_MINT: process.env.AGENT_TOKEN_MINT_ADDRESS,
   MOCK_MODE: process.env.MOCK_MODE === 'true',
 };
 
-const connection = new Connection(CONFIG.SOLANA_RPC, 'confirmed');
+// Use WebSocket connection for better reliability on cloud hosts
+const connection = new Connection(CONFIG.SOLANA_RPC_HTTP, {
+  wsEndpoint: CONFIG.SOLANA_RPC,
+  commitment: 'confirmed',
+  confirmTransactionInitialTimeout: 60000,
+});
 
 // Hardcoded Stablecoins
 const STABLECOINS = [
