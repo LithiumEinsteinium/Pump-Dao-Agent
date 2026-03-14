@@ -14,6 +14,8 @@ const CONFIG = {
   SOLANA_RPC_HTTP: process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com',
   AGENT_TOKEN_MINT: process.env.AGENT_TOKEN_MINT_ADDRESS,
   MOCK_MODE: process.env.MOCK_MODE === 'true',
+  // API Fee: 0.0025 SOL per call
+  API_FEE_LAMPORTS: 2500000, // 0.0025 SOL in lamports
 };
 
 const connection = new Connection(CONFIG.SOLANA_RPC_HTTP, 'confirmed');
@@ -151,3 +153,35 @@ module.exports = {
   getTokenPrice,
   CONFIG
 };
+
+
+/**
+ * Verify user has enough SOL for API fee
+ */
+async function verifySolFee(walletAddress) {
+  try {
+    const owner = new PublicKey(walletAddress);
+    const balance = await connection.getBalance(owner);
+    
+    if (balance < CONFIG.API_FEE_LAMPORTS) {
+      return {
+        eligible: false,
+        required: CONFIG.API_FEE_LAMPORTS / 1e9,
+        held: balance / 1e9,
+        message: `Insufficient SOL. Need ${(CONFIG.API_FEE_LAMPORTS / 1e9)} SOL for API fee`
+      };
+    }
+    
+    return {
+      eligible: true,
+      required: CONFIG.API_FEE_LAMPORTS / 1e9,
+      held: balance / 1e9,
+      message: `✓ Sufficient SOL for API fee (${balance / 1e9} SOL available)`
+    };
+  } catch (error) {
+    throw new Error(`SOL balance check failed: ${error.message}`);
+  }
+}
+
+module.exports = { verifyEligibility, verifySolFee, getTokenBalance, getSolBalance };
+
