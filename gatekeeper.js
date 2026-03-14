@@ -183,5 +183,5 @@ async function verifySolFee(walletAddress) {
   }
 }
 
-module.exports = { verifyEligibility, verifySolFee, getTokenBalance, getSolBalance };
+module.exports = { verifyEligibility, verifySolFee, getTokenBalance };
 
