@@ -27,10 +27,11 @@ const STABLECOINS = [
  * Tries CoinGecko first, then Jupiter.
  */
 async function getTokenPrice(tokenMint) {
-  const mintLower = tokenMint.toLowerCase();
+  const mintLower = tokenMint ? tokenMint.toString().toLowerCase().trim() : '';
   
-  // 1. Hardcoded Stablecoins
-  if (STABLECOINS.includes(mintLower)) {
+  // 1. Hardcoded Stablecoins (USDC)
+  if (mintLower === 'epjfwdd5aufqssqeM2qN1xzybapC8G4wEGGkZwyTDt1v') {
+    console.log('✅ Detected USDC, returning $1.00');
     return 1.0;
   }
 
