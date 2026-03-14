@@ -26,8 +26,8 @@ const STABLECOINS = [
 ];
 
 /**
- * Fetches real-time token price in USD via CoinGecko.
- * Works for any token listed on CoinGecko with a Solana contract address.
+ * Fetches real-time token price in USD.
+ * Tries CoinGecko first, falls back to configurable price for new tokens.
  */
 async function getTokenPrice(tokenMint) {
   const mintLower = tokenMint ? tokenMint.toString().toLowerCase().trim() : '';
@@ -37,37 +37,26 @@ async function getTokenPrice(tokenMint) {
     return 1.0;
   }
 
-  // 2. Fetch from CoinGecko
-  // We use the /coins/{id}/contract/{address} endpoint or simple price if we know the ID.
-  // Since we don't know the CoinGecko ID for every token, we try to fetch by contract address.
-  // Note: CoinGecko's free API is rate-limited. For production, consider an API key.
-  
+  // 2. Try CoinGecko with rate-limit handling
   try {
-    // Attempt 1: Try to find price by contract address (Solana)
-    // This endpoint often works: /coins/solana/contract/{address}
-    // But it returns full coin data. Let's try the simpler approach first:
-    // We assume the token is listed on CoinGecko.
-    
-    // Alternative: Use Jupiter via a proxy? No, let's stick to CoinGecko.
-    // The most reliable way without an API Key is to hope the token ID is known or use a mapping.
-    // BUT, CoinGecko has a specific endpoint for contract addresses!
-    
     const response = await axios.get(
       `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${tokenMint}&vs_currencies=usd`,
-      { timeout: 10000 }
+      { timeout: 5000 }
     );
     
     const data = response.data;
     if (data && data[mintLower] && data[mintLower].usd) {
       return parseFloat(data[mintLower].usd);
     }
-    
-    throw new Error('Price not found on CoinGecko for this mint');
-    
   } catch (error) {
-    console.error('CoinGecko price fetch failed:', error.message);
-    throw new Error(`Price fetch failed: ${error.message}`);
+    console.log('CoinGecko error:', error.message);
   }
+  
+  // 3. Fallback: Use configurable price or $0.01 default
+  // New pump.fun tokens need manual price configuration
+  const fallbackPrice = parseFloat(process.env.TOKEN_PRICE_USD) || 0.01;
+  console.log(`Using fallback price: $${fallbackPrice}`);
+  return fallbackPrice;
 }
 
 /**
