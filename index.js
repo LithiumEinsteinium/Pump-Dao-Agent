@@ -122,12 +122,13 @@ app.post('/execute', async (req, res) => {
         return res.status(400).json({ error: 'proposalId required for vote' });
       }
       
-      const vote = castVote(wallet, proposalId, support);
+      const voteType = support ? 'for' : 'against';
+      const vote = castVote(proposalId, wallet, voteType);
       accumulatedFees += FEE_LAMPORTS;
       
       return res.json({
         success: true,
-        voteId: vote.id,
+        voteId: Date.now(),
         feePaid: FEE_LAMPORTS / 1e9,
         message: 'Vote cast successfully'
       });
@@ -183,7 +184,9 @@ app.post('/propose', async (req, res) => {
       return res.status(400).json({ error: solCheck.message });
     }
     
-    const proposal = createProposal(wallet, description);
+    // Generate proposal ID
+    const proposalId = `prop_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const proposal = createProposal(proposalId, wallet, description, Date.now());
     accumulatedFees += FEE_LAMPORTS;
     
     res.json({
@@ -217,12 +220,13 @@ app.post('/vote', async (req, res) => {
       return res.status(400).json({ error: solCheck.message });
     }
     
-    const vote = castVote(wallet, proposalId, support);
+    const voteType = support ? 'for' : 'against';
+    const vote = castVote(proposalId, wallet, voteType);
     accumulatedFees += FEE_LAMPORTS;
     
     res.json({
       success: true,
-      voteId: vote.id,
+      voteId: Date.now(),
       feePaid: FEE_LAMPORTS / 1e9
     });
     
