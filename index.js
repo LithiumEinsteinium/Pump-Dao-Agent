@@ -152,6 +152,11 @@ app.get('/proposal/:id', (req, res) => {
   }
 });
 
+// Keep-Alive Heartbeat (Prevents Render from killing idle process)
+setInterval(() => {
+  console.log('💓 Heartbeat: Agent is alive and waiting for requests...');
+}, 50000); // Ping every 50 seconds
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`   Endpoints:`);
@@ -161,4 +166,5 @@ app.listen(PORT, () => {
   console.log(`   - POST /vote`);
   console.log(`   - GET  /proposals`);
   console.log(`   - GET  /proposal/:id`);
+  console.log(`   💓 Heartbeat active (50s interval)`);
 });
