@@ -12,6 +12,7 @@ const CONFIG = {
   VOTE_THRESHOLD_USD: parseFloat(process.env.VOTE_THRESHOLD_USD) || 10,
   SOLANA_RPC: process.env.SOLANA_RPC_URL || 'https://rpc.solanatracker.io/public',
   AGENT_TOKEN_MINT: process.env.AGENT_TOKEN_MINT_ADDRESS,
+  MOCK_MODE: process.env.MOCK_MODE === 'true', // Set to 'true' to bypass RPC checks
 };
 
 const connection = new Connection(CONFIG.SOLANA_RPC, 'confirmed');
@@ -93,6 +94,17 @@ async function verifyEligibility(userAddress, action) {
   const threshold = action === 'propose' 
     ? CONFIG.PROPOSAL_THRESHOLD_USD 
     : CONFIG.VOTE_THRESHOLD_USD;
+  
+  // Mock Mode for testing on restricted networks (Render free tier)
+  if (CONFIG.MOCK_MODE) {
+    console.log(`⚠️  MOCK MODE: Assuming user holds $150.00`);
+    return {
+      eligible: true,
+      holdings: 150.00,
+      required: threshold,
+      message: `✅ [MOCK] Verified: $150.00 held (Required: $${threshold})`
+    };
+  }
   
   try {
     const price = await getTokenPrice(CONFIG.AGENT_TOKEN_MINT);
