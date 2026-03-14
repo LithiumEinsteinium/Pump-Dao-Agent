@@ -22,7 +22,7 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-console.log('🏛️  $PDA - Pump DAO Agent Starting...');
+console.log('🏛️  $PDA - Pump DAO Agent Starting... (Build v2 - USDC Hardcoded)');
 console.log(`   Ticker: $PDA`);
 console.log(`   Thresholds: $${process.env.PROPOSAL_THRESHOLD_USD} to propose, $${process.env.VOTE_THRESHOLD_USD} to vote`);
 console.log(`   Agent Token: ${process.env.AGENT_TOKEN_MINT_ADDRESS}`);
