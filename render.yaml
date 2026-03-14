@@ -20,5 +20,4 @@ services:
         value: EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v 
       - key: PRIVATE_KEY
         sync: false
-      - key: MOCK_MODE
-        value: "true"  # Set to true to bypass RPC/Price checks for testing
+      # MOCK_MODE removed - using real CoinGecko data

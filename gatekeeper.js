@@ -1,14 +1,11 @@
 /**
  * Gatekeeper Module
  * Verifies user token holdings against dynamic USD thresholds.
- * Uses real-time price from CoinGecko or hardcoded values for stablecoins.
+ * Uses CoinGecko API for reliable price fetching on cloud hosts.
  */
 
 const { Connection, PublicKey } = require('@solana/web3.js');
 const axios = require('axios');
-
-console.log(`🔍 MOCK_MODE Env: "${process.env.MOCK_MODE}"`);
-console.log(`🔍 MOCK_MODE Parsed: ${process.env.MOCK_MODE === 'true'}`);
 
 const CONFIG = {
   PROPOSAL_THRESHOLD_USD: parseFloat(process.env.PROPOSAL_THRESHOLD_USD) || 100,
@@ -17,52 +14,61 @@ const CONFIG = {
   AGENT_TOKEN_MINT: process.env.AGENT_TOKEN_MINT_ADDRESS,
   MOCK_MODE: process.env.MOCK_MODE === 'true',
 };
-console.log(`✅ CONFIG.MOCK_MODE = ${CONFIG.MOCK_MODE}`);
 
 const connection = new Connection(CONFIG.SOLANA_RPC, 'confirmed');
 
-// Known Token Prices (Stablecoins)
+// Hardcoded Stablecoins
 const STABLECOINS = [
   'epjfwdd5aufqssqeM2qN1xzybapC8G4wEGGkZwyTDt1v'.toLowerCase(), // USDC
-  'esntg1jjas3huzq6jg92e3y6a023v829372212222222'.toLowerCase() // USDT (example)
 ];
 
 /**
- * Fetches real-time token price in USD.
- * Tries CoinGecko first, then Jupiter.
+ * Fetches real-time token price in USD via CoinGecko.
+ * Works for any token listed on CoinGecko with a Solana contract address.
  */
 async function getTokenPrice(tokenMint) {
   const mintLower = tokenMint ? tokenMint.toString().toLowerCase().trim() : '';
   
   // 1. Hardcoded Stablecoins (USDC)
-  if (mintLower === 'epjfwdd5aufqssqeM2qN1xzybapC8G4wEGGkZwyTDt1v') {
-    console.log('✅ Detected USDC, returning $1.00');
+  if (STABLECOINS.includes(mintLower)) {
     return 1.0;
   }
 
-  // 2. Try CoinGecko (requires mapping mint to CoinGecko ID, which is hard dynamically)
-  // Instead, let's try Jupiter with a specific timeout and error handling
+  // 2. Fetch from CoinGecko
+  // We use the /coins/{id}/contract/{address} endpoint or simple price if we know the ID.
+  // Since we don't know the CoinGecko ID for every token, we try to fetch by contract address.
+  // Note: CoinGecko's free API is rate-limited. For production, consider an API key.
+  
   try {
+    // Attempt 1: Try to find price by contract address (Solana)
+    // This endpoint often works: /coins/solana/contract/{address}
+    // But it returns full coin data. Let's try the simpler approach first:
+    // We assume the token is listed on CoinGecko.
+    
+    // Alternative: Use Jupiter via a proxy? No, let's stick to CoinGecko.
+    // The most reliable way without an API Key is to hope the token ID is known or use a mapping.
+    // BUT, CoinGecko has a specific endpoint for contract addresses!
+    
     const response = await axios.get(
-      `https://price.jup.ag/v6/price?ids=${tokenMint}&vsToken=USDC`,
-      { timeout: 8000 } // 8 second timeout
+      `https://api.coingecko.com/api/v3/simple/token_price/solana?contract_addresses=${tokenMint}&vs_currencies=usd`,
+      { timeout: 10000 }
     );
     
-    const priceData = response.data.data[tokenMint];
-    if (priceData && priceData.price) {
-      return parseFloat(priceData.price);
+    const data = response.data;
+    if (data && data[mintLower] && data[mintLower].usd) {
+      return parseFloat(data[mintLower].usd);
     }
-    throw new Error('Invalid response from Jupiter');
+    
+    throw new Error('Price not found on CoinGecko for this mint');
+    
   } catch (error) {
-    console.error('Jupiter price fetch failed:', error.message);
-    // If Jupiter fails, we can't easily fallback to CoinGecko without an ID map.
-    // For testing with USDC, the hardcoded value above handles it.
+    console.error('CoinGecko price fetch failed:', error.message);
     throw new Error(`Price fetch failed: ${error.message}`);
   }
 }
 
 /**
- * Gets user's token balance (raw amount, not value)
+ * Gets user's token balance
  */
 async function getTokenBalance(userAddress, tokenMint) {
   try {
@@ -99,9 +105,8 @@ async function verifyEligibility(userAddress, action) {
     ? CONFIG.PROPOSAL_THRESHOLD_USD 
     : CONFIG.VOTE_THRESHOLD_USD;
   
-  // Mock Mode for testing on restricted networks (Render free tier)
+  // Mock Mode for testing
   if (CONFIG.MOCK_MODE) {
-    console.log(`⚠️  MOCK MODE: Assuming user holds $150.00`);
     return {
       eligible: true,
       holdings: 150.00,
