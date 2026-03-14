@@ -10,7 +10,8 @@ const axios = require('axios');
 const CONFIG = {
   PROPOSAL_THRESHOLD_USD: parseFloat(process.env.PROPOSAL_THRESHOLD_USD) || 100,
   VOTE_THRESHOLD_USD: parseFloat(process.env.VOTE_THRESHOLD_USD) || 10,
-  SOLANA_RPC: process.env.SOLANA_RPC_URL || 'https://rpc.solanatracker.io/public',
+  // Use Ankr as default fallback (more reliable on free cloud tiers)
+  SOLANA_RPC: process.env.SOLANA_RPC_URL || 'https://rpc.ankr.com/solana',
   AGENT_TOKEN_MINT: process.env.AGENT_TOKEN_MINT_ADDRESS,
   MOCK_MODE: process.env.MOCK_MODE === 'true',
 };
