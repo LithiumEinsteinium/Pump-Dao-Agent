@@ -7,13 +7,17 @@
 const { Connection, PublicKey } = require('@solana/web3.js');
 const axios = require('axios');
 
+console.log(`🔍 MOCK_MODE Env: "${process.env.MOCK_MODE}"`);
+console.log(`🔍 MOCK_MODE Parsed: ${process.env.MOCK_MODE === 'true'}`);
+
 const CONFIG = {
   PROPOSAL_THRESHOLD_USD: parseFloat(process.env.PROPOSAL_THRESHOLD_USD) || 100,
   VOTE_THRESHOLD_USD: parseFloat(process.env.VOTE_THRESHOLD_USD) || 10,
   SOLANA_RPC: process.env.SOLANA_RPC_URL || 'https://rpc.solanatracker.io/public',
   AGENT_TOKEN_MINT: process.env.AGENT_TOKEN_MINT_ADDRESS,
-  MOCK_MODE: process.env.MOCK_MODE === 'true', // Set to 'true' to bypass RPC checks
+  MOCK_MODE: process.env.MOCK_MODE === 'true',
 };
+console.log(`✅ CONFIG.MOCK_MODE = ${CONFIG.MOCK_MODE}`);
 
 const connection = new Connection(CONFIG.SOLANA_RPC, 'confirmed');
 
